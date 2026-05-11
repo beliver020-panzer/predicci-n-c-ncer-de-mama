@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cancer Diagnosis - Wisconsin Breast Cancer</title>
+  <link rel="stylesheet" href="/static/css/estilos.css">
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">🏥 Cancer Diagnosis</div>
+    <nav>
+      <ul>
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/predict">Diagnóstico Individual</a></li>
+        <li><a href="/batch">Diagnóstico por Lotes</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <span class="tagline">DIAGNÓSTICO DE CÁNCER DE MAMA</span>
+      <h1>Predicción automática con<br>Machine Learning Avanzado</h1>
+      <p>Utiliza Regresión Logística y Redes Neuronales para análisis del cáncer de mama de Wisconsin.</p>
+      <a href="/predict" class="btn">Comenzar diagnóstico →</a>
+    </div>
+  </section>
+
+  <section class="form-section" id="formulario">
+    <div class="section-header">
+      <h2>Opciones de Diagnóstico</h2>
+      <p>Elige entre análisis individual o procesamiento de lotes</p>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin: 30px auto;">
+      <a href="/predict" class="btn" style="text-align: center; padding: 15px;">👤 Diagnóstico Individual</a>
+      <a href="/batch" class="btn" style="text-align: center; padding: 15px;">📊 Diagnóstico por Lotes</a>
+    </div>
+  </section>
+
+  <section class="risk-cards" id="riesgos">
+    <h2>Características del Dataset</h2>
+    <div class="cards-grid">
+      <div class="card">
+        <h3>📊 30 Características</h3>
+        <p>Mediciones microscópicas del núcleo celular del tumor.</p>
+      </div>
+      <div class="card">
+        <h3>📈 569 Casos</h3>
+        <p>Instancias de diagnóstico de cáncer de mama reales.</p>
+      </div>
+      <div class="card">
+        <h3>✓ Clasificación Binaria</h3>
+        <p>Maligno (canceroso) o Benigno (no canceroso).</p>
+      </div>
+      <div class="card">
+        <h3>⭐ Modelos Entrenados</h3>
+        <p>Red Neuronal + Regresión Logística con validación cruzada.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="info" id="info">
+    <div class="text">
+      <h2>🧠 Red Neuronal (MLP)</h2>
+      <p>Modelo con capas ocultas que captura relaciones no lineales complejas entre las características del tumor.</p>
+    </div>
+    <div class="text">
+      <h2>📈 Regresión Logística</h2>
+      <p>Modelo estadístico que proporciona probabilidades bien calibradas e interpretables de malignidad.</p>
+    </div>
+  </section>
+
+  <section style="background: rgba(255, 200, 100, 0.15); border: 1px solid rgba(255, 200, 100, 0.3); border-radius: 16px; padding: 30px; margin: 30px 0;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+      <h2 style="margin-top: 0; color: #ffc864;">⚠️ Descargo de Responsabilidad</h2>
+      <p style="color: #e0e0e0;"><strong>IMPORTANTE:</strong> Este sistema es para propósitos educativos únicamente. Las predicciones <strong>NO deben</strong> utilizarse para diagnósticos médicos reales. 
+      Siempre consulte con un oncólogo o médico calificado para decisiones médicas.</p>
+    </div>
+  </section>
+
+  <section style="background: rgba(15, 30, 55, 0.6); border-top: 1px solid rgba(98, 210, 255, 0.2); border-bottom: 1px solid rgba(98, 210, 255, 0.2); padding: 40px 20px; text-align: center;">
+    <h2 style="color: #62d2ff;">📚 Información del Proyecto</h2>
+    <div style="max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; text-align: left;">
+      <div>
+        <h3 style="color: #62d2ff;">Dataset: Wisconsin Breast Cancer</h3>
+        <ul style="color: #cfd8e6;">
+          <li><strong>Fuente:</strong> UCI Machine Learning Repository</li>
+          <li><strong>Instancias:</strong> 569 casos</li>
+          <li><strong>Características:</strong> 30 mediciones</li>
+          <li><strong>Objetivo:</strong> Clasificación binaria (Maligno/Benigno)</li>
+          <li><strong>Precisión:</strong> >95% en validación</li>
+        </ul>
+      </div>
+      <div>
+        <h3 style="color: #62d2ff;">Mediciones Incluidas</h3>
+        <ul style="color: #cfd8e6;">
+          <li>Radio, Textura, Perímetro</li>
+          <li>Área, Suavidad, Compacidad</li>
+          <li>Concavidad, Puntos cóncavos</li>
+          <li>Simetría, Dimensión fractal</li>
+          <li>Estadísticas: Media, SE, Peor</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Cancer Diagnosis © 2026 | Wisconsin Breast Cancer Diagnostic Database | UCI Machine Learning Repository</p>
+  </footer>
+</body>
+</html>

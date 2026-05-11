@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico de Cáncer - Wisconsin</title>
+  <link rel="stylesheet" href="/static/css/estilos.css">
+  <style>
+    .results-section {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+    
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 30px 0;
+    }
+    
+    .model-result {
+      background: rgba(15, 30, 55, 0.6);
+      border-left: 5px solid #62d2ff;
+      border: 1px solid rgba(98, 210, 255, 0.3);
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      color: #e0e0e0;
+    }
+    
+    .model-result.maligno {
+      border-left-color: #ff6b6b;
+      border-color: rgba(255, 107, 107, 0.3);
+      background: rgba(40, 20, 20, 0.6);
+    }
+    
+    .model-result.benigno {
+      border-left-color: #51cf66;
+      border-color: rgba(81, 207, 102, 0.3);
+      background: rgba(20, 40, 20, 0.6);
+    }
+    
+    .model-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #ffffff;
+    }
+    
+    .probability-bar {
+      background: rgba(255, 255, 255, 0.1);
+      height: 30px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 15px 0;
+      border: 1px solid rgba(98, 210, 255, 0.2);
+    }
+    
+    .probability-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #51cf66 0%, #ffd43b 50%, #ff6b6b 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 12px;
+      transition: width 0.3s ease;
+    }
+    
+    .diagnosis-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+    
+    .diagnosis-maligno {
+      background: rgba(255, 107, 107, 0.7);
+      color: white;
+      border: 1px solid #ff6b6b;
+    }
+    
+    .diagnosis-benigno {
+      background: rgba(81, 207, 102, 0.7);
+      color: white;
+      border: 1px solid #51cf66;
+    }
+    
+    .prediction-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: #62d2ff;
+      margin: 10px 0;
+      text-align: center;
+    }
+    
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .input-group label {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #cfd8e6;
+    }
+    
+    .input-group input {
+      padding: 8px;
+      border: 1px solid rgba(98, 210, 255, 0.3);
+      border-radius: 8px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.05);
+      color: #e0e0e0;
+    }
+    
+    .input-group input:focus {
+      border-color: rgba(98, 210, 255, 0.6);
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+    }
+    
+    .btn {
+      background: #007bff;
+      color: white;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+      background: #0056b3;
+      transform: scale(1.05);
+    }
+    
+    @media (max-width: 768px) {
+      .comparison-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">🏥 Cancer Diagnosis</div>
+    <nav>
+      <ul>
+        <li><a href="/">Inicio</a></li>
+        <li><a href="/predict">Diagnóstico Individual</a></li>
+        <li><a href="/batch">Diagnóstico por Lotes</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <span class="tagline">DIAGNÓSTICO DE CÁNCER DE MAMA</span>
+      <h1>Predicción con Machine Learning</h1>
+      <p>Dataset: Wisconsin Breast Cancer Diagnostic Database</p>
+    </div>
+  </section>
+
+  <section class="results-section">
+    {% if error %}
+    <div style="background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin: 20px 0; border: 1px solid #f5c6cb;">
+      <strong>⚠️ Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <div style="max-width: 900px; margin: 0 auto;">
+      <div class="section-header">
+        <h2>Ingrese las características del tumor</h2>
+        <p>Proporcione las 30 mediciones en escala microscópica (10 promedio + 10 error estándar + 10 peor valor)</p>
+      </div>
+
+      <form action="/predict" method="post">
+        <div class="input-grid">
+          <div class="input-group">
+            <label for="radius_mean">Radio promedio</label>
+            <input type="number" id="radius_mean" name="radius_mean" step="0.01" placeholder="14.35" required>
+          </div>
+          <div class="input-group">
+            <label for="texture_mean">Textura promedio</label>
+            <input type="number" id="texture_mean" name="texture_mean" step="0.01" placeholder="19.30" required>
+          </div>
+          <div class="input-group">
+            <label for="perimeter_mean">Perímetro promedio</label>
+            <input type="number" id="perimeter_mean" name="perimeter_mean" step="0.01" placeholder="91.36" required>
+          </div>
+          <div class="input-group">
+            <label for="area_mean">Área promedio</label>
+            <input type="number" id="area_mean" name="area_mean" step="0.01" placeholder="654.80" required>
+          </div>
+          <div class="input-group">
+            <label for="smoothness_mean">Suavidad promedio</label>
+            <input type="number" id="smoothness_mean" name="smoothness_mean" step="0.0001" placeholder="0.10" required>
+          </div>
+          <div class="input-group">
+            <label for="compactness_mean">Compacidad promedio</label>
+            <input type="number" id="compactness_mean" name="compactness_mean" step="0.0001" placeholder="0.10" required>
+          </div>
+          <div class="input-group">
+            <label for="concavity_mean">Concavidad promedio</label>
+            <input type="number" id="concavity_mean" name="concavity_mean" step="0.0001" placeholder="0.05" required>
+          </div>
+          <div class="input-group">
+            <label for="concave_points_mean">Puntos cóncavos promedio</label>
+            <input type="number" id="concave_points_mean" name="concave_points_mean" step="0.0001" placeholder="0.03" required>
+          </div>
+          <div class="input-group">
+            <label for="symmetry_mean">Simetría promedio</label>
+            <input type="number" id="symmetry_mean" name="symmetry_mean" step="0.0001" placeholder="0.18" required>
+          </div>
+          <div class="input-group">
+            <label for="fractal_dimension_mean">Dimensión fractal promedio</label>
+            <input type="number" id="fractal_dimension_mean" name="fractal_dimension_mean" step="0.0001" placeholder="0.06" required>
+          </div>
+          <div class="input-group">
+            <label for="radius_se">Radio - Error Estándar</label>
+            <input type="number" id="radius_se" name="radius_se" step="0.01" placeholder="0.40" required>
+          </div>
+          <div class="input-group">
+            <label for="texture_se">Textura - Error Estándar</label>
+            <input type="number" id="texture_se" name="texture_se" step="0.01" placeholder="1.04" required>
+          </div>
+          <div class="input-group">
+            <label for="perimeter_se">Perímetro - Error Estándar</label>
+            <input type="number" id="perimeter_se" name="perimeter_se" step="0.01" placeholder="2.87" required>
+          </div>
+          <div class="input-group">
+            <label for="area_se">Área - Error Estándar</label>
+            <input type="number" id="area_se" name="area_se" step="0.01" placeholder="40.60" required>
+          </div>
+          <div class="input-group">
+            <label for="smoothness_se">Suavidad - Error Estándar</label>
+            <input type="number" id="smoothness_se" name="smoothness_se" step="0.00001" placeholder="0.005" required>
+          </div>
+          <div class="input-group">
+            <label for="compactness_se">Compacidad - Error Estándar</label>
+            <input type="number" id="compactness_se" name="compactness_se" step="0.00001" placeholder="0.005" required>
+          </div>
+          <div class="input-group">
+            <label for="concavity_se">Concavidad - Error Estándar</label>
+            <input type="number" id="concavity_se" name="concavity_se" step="0.00001" placeholder="0.003" required>
+          </div>
+          <div class="input-group">
+            <label for="concave_points_se">Puntos cóncavos - Error Estándar</label>
+            <input type="number" id="concave_points_se" name="concave_points_se" step="0.00001" placeholder="0.003" required>
+          </div>
+          <div class="input-group">
+            <label for="symmetry_se">Simetría - Error Estándar</label>
+            <input type="number" id="symmetry_se" name="symmetry_se" step="0.00001" placeholder="0.008" required>
+          </div>
+          <div class="input-group">
+            <label for="fractal_dimension_se">Dimensión fractal - Error Estándar</label>
+            <input type="number" id="fractal_dimension_se" name="fractal_dimension_se" step="0.00001" placeholder="0.001" required>
+          </div>
+          <div class="input-group">
+            <label for="radius_worst">Radio - Peor valor</label>
+            <input type="number" id="radius_worst" name="radius_worst" step="0.01" placeholder="16.27" required>
+          </div>
+          <div class="input-group">
+            <label for="texture_worst">Textura - Peor valor</label>
+            <input type="number" id="texture_worst" name="texture_worst" step="0.01" placeholder="25.38" required>
+          </div>
+          <div class="input-group">
+            <label for="perimeter_worst">Perímetro - Peor valor</label>
+            <input type="number" id="perimeter_worst" name="perimeter_worst" step="0.01" placeholder="107.40" required>
+          </div>
+          <div class="input-group">
+            <label for="area_worst">Área - Peor valor</label>
+            <input type="number" id="area_worst" name="area_worst" step="0.01" placeholder="880.10" required>
+          </div>
+          <div class="input-group">
+            <label for="smoothness_worst">Suavidad - Peor valor</label>
+            <input type="number" id="smoothness_worst" name="smoothness_worst" step="0.0001" placeholder="0.14" required>
+          </div>
+          <div class="input-group">
+            <label for="compactness_worst">Compacidad - Peor valor</label>
+            <input type="number" id="compactness_worst" name="compactness_worst" step="0.0001" placeholder="0.27" required>
+          </div>
+          <div class="input-group">
+            <label for="concavity_worst">Concavidad - Peor valor</label>
+            <input type="number" id="concavity_worst" name="concavity_worst" step="0.0001" placeholder="0.17" required>
+          </div>
+          <div class="input-group">
+            <label for="concave_points_worst">Puntos cóncavos - Peor valor</label>
+            <input type="number" id="concave_points_worst" name="concave_points_worst" step="0.0001" placeholder="0.08" required>
+          </div>
+          <div class="input-group">
+            <label for="symmetry_worst">Simetría - Peor valor</label>
+            <input type="number" id="symmetry_worst" name="symmetry_worst" step="0.0001" placeholder="0.30" required>
+          </div>
+          <div class="input-group">
+            <label for="fractal_dimension_worst">Dimensión fractal - Peor valor</label>
+            <input type="number" id="fractal_dimension_worst" name="fractal_dimension_worst" step="0.0001" placeholder="0.08" required>
+          </div>
+        </div>
+        <button type="submit" class="btn" style="width: 100%; margin-top: 15px; padding: 15px;">Generar Diagnóstico</button>
+      </form>
+    </div>
+
+    {% if resultado %}
+    <div style="margin-top: 50px;">
+      <h2 style="text-align: center; color: #333; margin-bottom: 30px;">📊 Resultados del Diagnóstico</h2>
+
+      <div class="comparison-grid">
+        <!-- Red Neuronal -->
+        <div class="model-result {% if nn_prob >= 50 %}maligno{% else %}benigno{% endif %}">
+          <div class="model-name">🧠 Red Neuronal</div>
+          
+          <div class="prediction-value">{{ nn_prob }}%</div>
+          
+          <div>Probabilidad de Malignidad</div>
+          
+          <div class="probability-bar">
+            <div class="probability-fill" style="width: {{ nn_prob }}%;">
+              {{ nn_prob }}%
+            </div>
+          </div>
+          
+          <div class="diagnosis-badge {% if nn_prob >= 50 %}diagnosis-maligno{% else %}diagnosis-benigno{% endif %}">
+            {% if nn_prob >= 50 %}⚠️ MALIGNO{% else %}✓ BENIGNO{% endif %}
+          </div>
+          <p style="color: #666; font-size: 12px; margin-top: 10px;">
+            Modelo MLP con capas ocultas que captura relaciones complejas.
+          </p>
+        </div>
+
+        <!-- Regresión Logística -->
+        <div class="model-result {% if log_prob >= 50 %}maligno{% else %}benigno{% endif %}">
+          <div class="model-name">📈 Regresión Logística</div>
+          
+          <div class="prediction-value">{{ log_prob }}%</div>
+          
+          <div>Probabilidad de Malignidad</div>
+          
+          <div class="probability-bar">
+            <div class="probability-fill" style="width: {{ log_prob }}%;">
+              {{ log_prob }}%
+            </div>
+          </div>
+          
+          <div class="diagnosis-badge {% if log_prob >= 50 %}diagnosis-maligno{% else %}diagnosis-benigno{% endif %}">
+            {% if log_prob >= 50 %}⚠️ MALIGNO{% else %}✓ BENIGNO{% endif %}
+          </div>
+          <p style="color: #666; font-size: 12px; margin-top: 10px;">
+            Modelo estadístico con probabilidades bien calibradas.
+          </p>
+        </div>
+      </div>
+
+      <div style="background: #071d7e; border-left: 4px solid #ffc107; padding: 20px; border-radius: 4px; margin-top: 30px;">
+        <h3 style="margin-top: 0;">⚠️ DESCARGO DE RESPONSABILIDAD</h3>
+        <p><strong>Este sistema es para propósitos educativos únicamente.</strong> Las predicciones NO deben utilizarse para diagnósticos médicos reales. 
+        Siempre consulte con un oncólogo o médico calificado para decisiones médicas importantes.</p>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+
+  <footer style="text-align: center; padding: 30px; background: rgba(9, 19, 31, 0.9); border-top: 50px; color: #666;">
+    <p>Cancer Diagnosis © 2026 | Dataset: Wisconsin Breast Cancer Diagnostic Database | UCI Machine Learning Repository</p>
+  </footer>
+</body>
+</html>
