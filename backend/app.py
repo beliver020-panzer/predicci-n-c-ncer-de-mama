@@ -5,6 +5,10 @@ import pandas as pd
 from werkzeug.utils import secure_filename
 import os
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score, accuracy_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+import base64
+from io import BytesIO
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -42,6 +46,40 @@ COLUMNAS_ESPERADAS = [
 @app.route('/')
 def home():
     return render_template('index.html')
+
+def generar_graficas_confusion(cm_log, cm_nn):
+    """Genera gráficas de matrices de confusión en formato base64"""
+    # Crear figura con dos subplots
+    fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+    
+    # Matriz de confusión para Regresión Logística
+    sns.heatmap(cm_log, annot=True, fmt='d', cmap='Blues', ax=axes[0], 
+                xticklabels=['Benigno', 'Maligno'], 
+                yticklabels=['Benigno', 'Maligno'],
+                cbar_kws={'label': 'Cantidad'})
+    axes[0].set_title('Matriz de Confusión - Regresión Logística', fontsize=14, fontweight='bold')
+    axes[0].set_ylabel('Valor Real', fontsize=12)
+    axes[0].set_xlabel('Predicción', fontsize=12)
+    
+    # Matriz de confusión para Red Neuronal
+    sns.heatmap(cm_nn, annot=True, fmt='d', cmap='Greens', ax=axes[1],
+                xticklabels=['Benigno', 'Maligno'], 
+                yticklabels=['Benigno', 'Maligno'],
+                cbar_kws={'label': 'Cantidad'})
+    axes[1].set_title('Matriz de Confusión - Red Neuronal', fontsize=14, fontweight='bold')
+    axes[1].set_ylabel('Valor Real', fontsize=12)
+    axes[1].set_xlabel('Predicción', fontsize=12)
+    
+    plt.tight_layout()
+    
+    # Convertir a base64
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', dpi=100, bbox_inches='tight')
+    buffer.seek(0)
+    image_base64 = base64.b64encode(buffer.read()).decode()
+    plt.close()
+    
+    return f"data:image/png;base64,{image_base64}"
 
 @app.route('/predict', methods=['GET', 'POST'])
 def predict():
@@ -152,6 +190,7 @@ def batch_predict():
             
             # Calcular métricas solo si hay columna de diagnosis
             metricas = None
+            grafica_base64 = None
             if 'diagnosis' in datos.columns:
                 # Convertir M/B a 1/0
                 y_true = (datos['diagnosis'] == 'M').astype(int).values
@@ -159,6 +198,9 @@ def batch_predict():
                 # Calcular matrices de confusión
                 cm_log = confusion_matrix(y_true, pred_log)
                 cm_nn = confusion_matrix(y_true, pred_nn_binary)
+                
+                # Generar gráficas
+                grafica_base64 = generar_graficas_confusion(cm_log, cm_nn)
                 
                 # Calcular métricas para Regresión Logística
                 metricas_log = {
@@ -193,7 +235,8 @@ def batch_predict():
                 total_registros=len(resultados),
                 positivos_log=int(sum(pred_log)),
                 positivos_nn=int(sum(pred_nn_binary)),
-                metricas=metricas
+                metricas=metricas,
+                grafica=grafica_base64
             )
             
         except Exception as e:

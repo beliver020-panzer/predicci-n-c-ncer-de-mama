@@ -161,6 +161,14 @@
         <div style="margin-top: 40px;">
             <h2 style="text-align: center; color: #62d2ff; margin-bottom: 30px;">📊 Métricas de Desempeño</h2>
             
+            <!-- Gráfica de Matrices de Confusión -->
+            {% if grafica %}
+            <div style="background: rgba(15, 30, 55, 0.6); border: 1px solid rgba(98, 210, 255, 0.3); border-radius: 16px; padding: 20px; margin-bottom: 30px; text-align: center;">
+                <h3 style="color: #62d2ff; margin-top: 0;">Matrices de Confusión</h3>
+                <img src="{{ grafica }}" style="max-width: 100%; height: auto; border-radius: 8px; border: 1px solid rgba(98, 210, 255, 0.3);">
+            </div>
+            {% endif %}
+            
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
                 <!-- Regresión Logística -->
                 <div style="background: rgba(15, 30, 55, 0.6); border: 1px solid rgba(98, 210, 255, 0.3); border-radius: 16px; padding: 20px;">
